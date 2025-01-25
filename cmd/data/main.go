@@ -16,6 +16,66 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
+type QuranTrDataTransaction struct {
+	VerseId    *int64
+	Reference  string
+	ChapterIdx int
+	VerseIdx   int
+	XmlPath    string
+	QuranData  *quran.Quran
+}
+
+type LinkVerseToPageTransaction struct {
+	PageIdx int
+	VerseId *int64
+}
+
+type LinkVerseToJuzTransaction struct {
+	VerseId *int64
+	JuzIdx  int
+}
+
+type LinkRukuToVerseTransaction struct {
+	VerseId    *int64
+	ChapterIdx int
+	VerseIdx   int
+}
+
+type TranslationTransaction struct {
+	VerseId   *int64
+	Reference string
+	Text      string
+	By        string
+	Lang      string
+}
+
+type VerseTransaction struct {
+	ChapterId *int64
+	Reference string
+	Chapter   int
+	Index     int
+	Text      string
+	Sajda     string
+	IsRuku    bool
+}
+
+type ChapterTransaction struct {
+	Index int
+	Start int
+	Name  string
+	Tname string
+	Ename string
+	Type  string
+	Order int
+}
+
+type TransliterationTransaction struct {
+	VerseId   *int64
+	Reference string
+	Text      string
+	Lang      string
+}
+
 func getPageOfVerse(chapterIndex int, verseIndex int, qMetaData quran.QuranMetadata) int {
 	for _, p := range qMetaData.Pages.Page {
 		suraIdx, _ := strconv.Atoi(p.Sura)
@@ -306,31 +366,6 @@ func initializeData(driver neo4j.DriverWithContext) {
 	wg.Wait()
 }
 
-type QuranTrDataTransaction struct {
-	VerseId    *int64
-	Reference  string
-	ChapterIdx int
-	VerseIdx   int
-	XmlPath    string
-	QuranData  *quran.Quran
-}
-
-type LinkVerseToPageTransaction struct {
-	PageIdx int
-	VerseId *int64
-}
-
-type LinkVerseToJuzTransaction struct {
-	VerseId *int64
-	JuzIdx  int
-}
-
-type LinkRukuToVerseTransaction struct {
-	VerseId    *int64
-	ChapterIdx int
-	VerseIdx   int
-}
-
 func linkVerseToJuz(tx neo4j.ManagedTransaction, ts *LinkVerseToJuzTransaction) (*int64, error) {
 	ctx := context.Background()
 	res, err := tx.Run(ctx, `
@@ -473,39 +508,22 @@ func saveQuranTrData(tx neo4j.ManagedTransaction, trDataTransaction *QuranTrData
 	}
 }
 
-type TranslationTransaction struct {
-	VerseId   *int64
-	Reference string
-	Text      string
-	By        string
-	Lang      string
+type CreatePageTransaction struct {
+	PageIdx      int
+	StartChapter int
+	StartVerse   int
 }
 
-type VerseTransaction struct {
-	ChapterId *int64
-	Reference string
-	Chapter   int
-	Index     int
-	Text      string
-	Sajda     string
-	IsRuku    bool
+type CreateJuzTransaction struct {
+	Index        int
+	StartChapter int
+	StartVerse   int
 }
 
-type ChapterTransaction struct {
-	Index int
-	Start int
-	Name  string
-	Tname string
-	Ename string
-	Type  string
-	Order int
-}
-
-type TransliterationTransaction struct {
-	VerseId   *int64
-	Reference string
-	Text      string
-	Lang      string
+type CreateQuarterTransaction struct {
+	Index        int
+	StartChapter int
+	StartVerse   int
 }
 
 func saveTransliteration(tx neo4j.ManagedTransaction, transliteration *TransliterationTransaction) (*int64, error) {
@@ -672,24 +690,6 @@ func saveChapter(tx neo4j.ManagedTransaction, chapter *ChapterTransaction) (*int
 	savedId := resSingle.AsMap()["nodeId"].(int64)
 
 	return &savedId, nil
-}
-
-type CreatePageTransaction struct {
-	PageIdx      int
-	StartChapter int
-	StartVerse   int
-}
-
-type CreateJuzTransaction struct {
-	Index        int
-	StartChapter int
-	StartVerse   int
-}
-
-type CreateQuarterTransaction struct {
-	Index        int
-	StartChapter int
-	StartVerse   int
 }
 
 func saveQuarter(tx neo4j.ManagedTransaction, tr *CreateQuarterTransaction) (*int64, error) {
