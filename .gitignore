@@ -1,0 +1,6 @@
+.env
+credentials.json
+static/**/*
+tmp/**/*
+neo4j/**/*
+!neo4j/.gitkeep
